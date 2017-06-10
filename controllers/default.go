@@ -3,10 +3,11 @@ package controllers
 import (
 	"blackjack/lib/blackjack"
 	"fmt"
-	"github.com/astaxie/beego"
 	"html/template"
 	"strconv"
 	"strings"
+
+	"github.com/astaxie/beego"
 )
 
 type Session struct {
@@ -24,12 +25,6 @@ type Session struct {
 	Deck                blackjack.Deck
 	DealerCards         []blackjack.Card
 	PlayerCards         []blackjack.Card
-}
-
-type Game struct {
-	Deck        blackjack.Deck
-	DealerCards []blackjack.Card
-	PlayerCards []blackjack.Card
 }
 
 func CalculateTotal(s *Session, cards []blackjack.Card) int {
@@ -64,33 +59,33 @@ func CardImage(card blackjack.Card) string {
 
 	return fmt.Sprintf("/static/img/cards/%s_%s.jpg", strings.ToLower(card.Suit), strings.ToLower(card.Rank))
 }
-func Winner(s *Session, msg string) template.HTML {
+
+func Winner(s *Session, msg string) {
 	s.PlayAgain = true
 	s.ShowHitStayButton = false
 	s.PlayerPot = s.PlayerPot + s.PlayerBet
-	s.Winner = template.HTML(fmt.Sprintf("<strong>%s won!</strong> %s", s.PlayerName, msg))
-	return s.Winner
+	s.Winner = HTML("<strong>%s won!</strong> %s", s.PlayerName, msg)
 }
-func Loser(s *Session, msg string) template.HTML {
+func Loser(s *Session, msg string) {
 	s.PlayAgain = true
 	s.ShowHitStayButton = false
 	s.PlayerPot = s.PlayerPot - s.PlayerBet
-	s.Loser = template.HTML(fmt.Sprintf("<strong>%s loses</strong> %s", s.PlayerName, msg))
-	return s.Loser
+	s.Loser = HTML("<strong>%s loses</strong> %s", s.PlayerName, msg)
 }
-func Tie(s *Session, msg string) template.HTML {
+func Tie(s *Session, msg string) {
 	s.PlayAgain = true
 	s.ShowHitStayButton = false
-	s.Winner = template.HTML(fmt.Sprintf("<strong>It's a tie!</strong> %s", msg))
-	return s.Winner
+	s.Winner = HTML("<strong>It's a tie!</strong> %s", msg)
+}
+func HTML(format string, a ...interface{}) template.HTML {
+	beego.Debug(format, a)
+	return template.HTML(fmt.Sprintf(format, a...))
 }
 
 func init() {
-	beego.AddFuncMap("calculate_total", CalculateTotal)
-	beego.AddFuncMap("card_image", CardImage)
-	beego.AddFuncMap("Winner", Winner)
-	beego.AddFuncMap("Loser", Loser)
-	beego.AddFuncMap("Tie", Tie)
+	// Functionss available to Template
+	beego.AddFuncMap("CalculateTotal", CalculateTotal)
+	beego.AddFuncMap("CardImage", CardImage)
 }
 
 type MainController struct {
@@ -106,6 +101,7 @@ func (c *MainController) Prepare() {
 		c.SetSession("session", s)
 	}
 	c.Data["session"] = s
+	s.(*Session).PlayAgain = false
 	s.(*Session).ShowHitStayButton = true
 	s.(*Session).ShowDealerHitButton = false
 	s.(*Session).Success = ""
@@ -147,7 +143,7 @@ func (c *MainController) Bet() {
 		if betAmount == 0 {
 			s.Error = "Must place a bet"
 		} else if betAmount > s.PlayerPot {
-			s.Error = template.HTML(fmt.Sprintf("Bet must be less that %d.", s.PlayerPot))
+			s.Error = HTML("Bet must be less that %d.", s.PlayerPot)
 		} else {
 			s.PlayerBet = betAmount
 			c.Data["session"] = s
@@ -201,7 +197,7 @@ func (c *MainController) PlayerHit() {
 
 func (c *MainController) PlayerStay() {
 	s := c.GetSession("session").(*Session)
-	s.Success = template.HTML(fmt.Sprintf("%s has chosen to stay.", s.PlayerName))
+	s.Success = HTML("%s has chosen to stay.", s.PlayerName)
 	c.Data["session"] = s
 	c.Redirect("/game/dealer", 302)
 }
@@ -259,7 +255,7 @@ func (c *MainController) Compare() {
 func (c *MainController) Over() {
 	s := c.GetSession("session").(*Session)
 	if s.PlayerPot <= 0 {
-		s.Error = template.HTML(fmt.Sprintf("<strong>%s, You are busted!</strong>", s.PlayerName))
+		s.Error = HTML("<strong>%s, You are busted!</strong>", s.PlayerName)
 	}
 	c.TplName = "game_over.tpl"
 }

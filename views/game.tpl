@@ -24,13 +24,13 @@
         {{ if and (ne $.session.Turn "dealer") (eq $i 0) }}
           <img src='/static/img/cards/cover.jpg'>
         {{ else }}
-          <img src='{{ card_image $card }}' class='card_image'>
+          <img src='{{ CardImage $card }}' class='card_image'>
         {{ end }}
       {{ end }}
 
       {{ if .session.ShowDealerHitButton }}
       <p>
-        <h5>Dealer has {{ calculate_total .session .session.DealerCards }} and will hit.</h5>
+        <h5>Dealer has {{ CalculateTotal .session .session.DealerCards }} and will hit.</h5>
         <form id="dealer_hit" action="/game/dealer/hit" method='post' >
           <input type="submit" class="btn btn-primary" value="Click to see dealer card &rarr;" />
         </form>
@@ -42,7 +42,7 @@
   <div class="well" id="player_cards">
     <h4>Player's cards:</h4>
       {{  range $i, $card := .session.PlayerCards }}
-        <img src='{{ card_image $card }}' class='card_image'>
+        <img src='{{ CardImage $card }}' class='card_image'>
       {{  end }}
 
       <h5>
@@ -52,7 +52,7 @@
 
   <p>
     What would {{ .session.PlayerName }} like to do?
-    {{ .session.PlayerName }} has {{ calculate_total .session .session.PlayerCards }}
+    {{ .session.PlayerName }} has {{ CalculateTotal .session .session.PlayerCards }}
 
     {{ if .session.ShowHitStayButton }}
       <form id="hit_form" action="/game/player/hit" method='post' >
