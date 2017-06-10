@@ -20,9 +20,8 @@
 
   <div class="well" id="dealer_cards">
     <h4>Dealer's cards:</h4>
-      {{ $turn := .session.Turn }}
       {{ range $i, $card := .session.DealerCards }}
-        {{ if and (ne $turn "dealer") (eq $i 0) }}
+        {{ if and (ne $.session.Turn "dealer") (eq $i 0) }}
           <img src='/static/img/cards/cover.jpg'>
         {{ else }}
           <img src='{{ card_image $card }}' class='card_image'>
