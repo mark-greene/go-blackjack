@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	"blackjack/lib/blackjack"
 	"fmt"
 	"html/template"
 	"strconv"
 	"strings"
+
+	"github.com/mark-greene/go-blackjack/lib/blackjack"
 
 	"github.com/astaxie/beego"
 )
@@ -31,7 +32,6 @@ func CalculateTotal(s *Session, cards []blackjack.Card) int {
 	total := 0
 	aces := 0
 	for _, card := range cards {
-		beego.Debug(card)
 		if card.Rank == "Ace" {
 			total += 11
 			aces++
@@ -43,7 +43,6 @@ func CalculateTotal(s *Session, cards []blackjack.Card) int {
 				total += v
 			}
 		}
-		beego.Debug(total)
 	}
 
 	for i := 0; i < aces; i++ {
@@ -78,7 +77,6 @@ func Tie(s *Session, msg string) {
 	s.Winner = HTML("<strong>It's a tie!</strong> %s", msg)
 }
 func HTML(format string, a ...interface{}) template.HTML {
-	beego.Debug(format, a)
 	return template.HTML(fmt.Sprintf(format, a...))
 }
 
@@ -186,7 +184,8 @@ func (c *MainController) PlayerHit() {
 	s.PlayerCards = append(s.PlayerCards, s.Deck.Deal())
 	total := CalculateTotal(s, s.PlayerCards)
 	if total == blackjack.BLACKJACK {
-		Winner(s, "You hit Blackjack!")
+		// Winner(s, "You hit Blackjack!")
+		c.Redirect("/game/dealer", 302)
 	} else if total > blackjack.BLACKJACK {
 		Loser(s, "You busted!")
 	}
@@ -197,9 +196,14 @@ func (c *MainController) PlayerHit() {
 
 func (c *MainController) PlayerStay() {
 	s := c.GetSession("session").(*Session)
-	s.Success = HTML("%s has chosen to stay.", s.PlayerName)
+	total := CalculateTotal(s, s.PlayerCards)
+	if total == blackjack.BLACKJACK {
+		c.Redirect("/game/compare", 302)
+	} else {
+		s.Success = HTML("%s has chosen to stay.", s.PlayerName)
+		c.Redirect("/game/dealer", 302)
+	}
 	c.Data["session"] = s
-	c.Redirect("/game/dealer", 302)
 }
 
 func (c *MainController) Dealer() {
@@ -208,7 +212,7 @@ func (c *MainController) Dealer() {
 	s.Turn = "dealer"
 	total := CalculateTotal(s, s.DealerCards)
 	if total == blackjack.BLACKJACK {
-		Loser(s, "Dealer hit blackjack.")
+		c.Redirect("/game/compare", 302)
 	} else if total > blackjack.BLACKJACK {
 		Winner(s, "Dealer busted!")
 	} else if total >= 17 {
@@ -239,7 +243,14 @@ func (c *MainController) Compare() {
 	playerTotal := CalculateTotal(s, s.PlayerCards)
 	dealerTotal := CalculateTotal(s, s.DealerCards)
 
-	if playerTotal > dealerTotal {
+	beego.Debug("Compare ", playerTotal, dealerTotal)
+	if playerTotal == blackjack.BLACKJACK {
+		if dealerTotal < blackjack.BLACKJACK {
+			Winner(s, fmt.Sprintf("You hit Blackjack! (dealer had %d)", dealerTotal))
+		} else if dealerTotal == blackjack.BLACKJACK {
+			Tie(s, "You and dealer hit Blackjack.")
+		}
+	} else if playerTotal > dealerTotal {
 		Winner(s, fmt.Sprintf("You stayed at %d and the dealer stayed at %d.", playerTotal, dealerTotal))
 	} else if playerTotal < dealerTotal {
 		Loser(s, fmt.Sprintf("You stayed at %d and the dealer stayed at %d.", playerTotal, dealerTotal))
@@ -255,7 +266,7 @@ func (c *MainController) Compare() {
 func (c *MainController) Over() {
 	s := c.GetSession("session").(*Session)
 	if s.PlayerPot <= 0 {
-		s.Error = HTML("<strong>%s, You are busted!</strong>", s.PlayerName)
+		s.Error = HTML("<strong>%s, You are broke!</strong>", s.PlayerName)
 	}
 	c.TplName = "game_over.tpl"
 }

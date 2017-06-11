@@ -1,9 +1,10 @@
 package main
 
 import (
-	_ "blackjack/routers"
 	"os"
 	"strconv"
+
+	_ "github.com/mark-greene/go-blackjack/routers"
 
 	"github.com/astaxie/beego"
 )

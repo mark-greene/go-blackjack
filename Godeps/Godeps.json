@@ -4,18 +4,6 @@
 	"GodepVersion": "v79",
 	"Deps": [
 		{
-			"ImportPath": "blackjack/controllers",
-			"Rev": "8d4de0d0e8ed87197be53cc5326dc05a72a5cae7"
-		},
-		{
-			"ImportPath": "blackjack/lib/blackjack",
-			"Rev": "8d4de0d0e8ed87197be53cc5326dc05a72a5cae7"
-		},
-		{
-			"ImportPath": "blackjack/routers",
-			"Rev": "8d4de0d0e8ed87197be53cc5326dc05a72a5cae7"
-		},
-		{
 			"ImportPath": "github.com/astaxie/beego",
 			"Comment": "v1.8.3",
 			"Rev": "cab8458c1c4a5a3b4bf5192922be620e6dede15b"

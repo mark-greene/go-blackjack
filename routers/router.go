@@ -1,8 +1,8 @@
 package routers
 
 import (
-	"blackjack/controllers"
 	"github.com/astaxie/beego"
+	"github.com/mark-greene/go-blackjack/controllers"
 )
 
 func init() {

@@ -22,7 +22,7 @@
     <h4>Dealer's cards:</h4>
       {{ range $i, $card := .session.DealerCards }}
         {{ if and (ne $.session.Turn "dealer") (eq $i 0) }}
-          <img src='/static/img/cards/cover.jpg'>
+          <img src='/static/img/cards/cover.jpg' class='card_image'>
         {{ else }}
           <img src='{{ CardImage $card }}' class='card_image'>
         {{ end }}

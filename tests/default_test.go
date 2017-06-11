@@ -1,12 +1,13 @@
 package test
 
 import (
-	_ "blackjack/routers"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
 	"runtime"
 	"testing"
+
+	_ "github.com/mark-greene/go-blackjack/routers"
 
 	"github.com/astaxie/beego"
 	. "github.com/smartystreets/goconvey/convey"
