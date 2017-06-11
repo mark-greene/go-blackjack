@@ -35,3 +35,4 @@ git clone https://github.com/mark-greene/go-blackjack
 go get github.com/astaxie/beego
 bee run
 ```
+Defaults to localhost:8080.  You can change port by `PORT=5000 bee run`.  You can run standalone `./go-blackjack`.
