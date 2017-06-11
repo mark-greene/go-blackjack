@@ -30,8 +30,8 @@ vs.
 ```
 
 ### To run blackjack
-git clone https://github.com/mark-greene/go-blackjack
 ```
+go get github.com/mark-greene/go-blackjack
 go get github.com/astaxie/beego
 bee run
 ```
