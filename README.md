@@ -2,8 +2,13 @@
 Port of Ruby/Sinatra game to Go/BeeGo
 
 Using my Ruby/Sinatra blackjack game to learn Golang.  Requires lots more coding and the go template language
-takes some getting use to.
-
+takes some getting use to.  Just try to do the following in go (it took me ~80 lines)
+```
+  suits = ['Clubs', 'Diamonds', 'Hearts', 'Spades']
+  ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'Jack', 'Queen', 'King', 'Ace']
+  session[:deck] = suits.product(ranks).shuffle!
+```
+And what's with the prefix notation?
 ```
 <% session[:dealer_cards].each_with_index do |card, i| %>
    <% if session[:turn] != 'dealer' && i == 0 %>
@@ -13,7 +18,7 @@ takes some getting use to.
    <% end %>
  <% end %>
 ```
-Vs.
+vs.
 ```
 {{ range $i, $card := .session.DealerCards }}
   {{ if and (ne $.session.Turn "dealer") (eq $i 0) }}
