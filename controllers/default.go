@@ -12,20 +12,13 @@ import (
 )
 
 type Session struct {
-	PlayAgain           bool
-	ShowHitStayButton   bool
-	ShowDealerHitButton bool
-	Winner              template.HTML
-	Loser               template.HTML
-	Error               template.HTML
-	Success             template.HTML
-	PlayerName          string
-	Turn                string
-	PlayerBet           int
-	PlayerPot           int
-	Deck                blackjack.Deck
-	DealerCards         []blackjack.Card
-	PlayerCards         []blackjack.Card
+	PlayerName  string
+	PlayerBet   int
+	PlayerPot   int
+	Turn        string
+	Deck        blackjack.Deck
+	DealerCards []blackjack.Card
+	PlayerCards []blackjack.Card
 }
 
 func CalculateTotal(s *Session, cards []blackjack.Card) int {
@@ -59,22 +52,24 @@ func CardImage(card blackjack.Card) string {
 	return fmt.Sprintf("/static/img/cards/%s_%s.jpg", strings.ToLower(card.Suit), strings.ToLower(card.Rank))
 }
 
-func Winner(s *Session, msg string) {
-	s.PlayAgain = true
-	s.ShowHitStayButton = false
+func winner(c *MainController, msg string) {
+	s := c.GetSession("session").(*Session)
+	c.Data["playAgain"] = true
+	c.Data["showHitStayButton"] = false
 	s.PlayerPot = s.PlayerPot + s.PlayerBet
-	s.Winner = HTML("<strong>%s won!</strong> %s", s.PlayerName, msg)
+	c.Data["winner"] = HTML("<strong>%s won!</strong> %s", s.PlayerName, msg)
 }
-func Loser(s *Session, msg string) {
-	s.PlayAgain = true
-	s.ShowHitStayButton = false
+func loser(c *MainController, msg string) {
+	s := c.GetSession("session").(*Session)
+	c.Data["playAgain"] = true
+	c.Data["showHitStayButton"] = false
 	s.PlayerPot = s.PlayerPot - s.PlayerBet
-	s.Loser = HTML("<strong>%s loses</strong> %s", s.PlayerName, msg)
+	c.Data["loser"] = HTML("<strong>%s loses</strong> %s", s.PlayerName, msg)
 }
-func Tie(s *Session, msg string) {
-	s.PlayAgain = true
-	s.ShowHitStayButton = false
-	s.Winner = HTML("<strong>It's a tie!</strong> %s", msg)
+func tie(c *MainController, msg string) {
+	c.Data["playAgain"] = true
+	c.Data["showHitStayButton"] = false
+	c.Data["winner"] = HTML("<strong>It's a tie!</strong> %s", msg)
 }
 func HTML(format string, a ...interface{}) template.HTML {
 	return template.HTML(fmt.Sprintf(format, a...))
@@ -99,13 +94,13 @@ func (c *MainController) Prepare() {
 		c.SetSession("session", s)
 	}
 	c.Data["session"] = s
-	s.(*Session).PlayAgain = false
-	s.(*Session).ShowHitStayButton = true
-	s.(*Session).ShowDealerHitButton = false
-	s.(*Session).Success = ""
-	s.(*Session).Error = ""
-	s.(*Session).Winner = ""
-	s.(*Session).Loser = ""
+	c.Data["playAgain"] = false
+	c.Data["showHitStayButton"] = true
+	c.Data["showDealerHitButton"] = false
+	c.Data["success"] = ""
+	c.Data["error"] = ""
+	c.Data["winner"] = ""
+	c.Data["loser"] = ""
 }
 
 func (c *MainController) Get() {
@@ -126,7 +121,7 @@ func (c *MainController) NewPlayer() {
 			c.Redirect("/bet", 302)
 			return
 		}
-		s.Error = "Name is required"
+		c.Data["error"] = "Name is required"
 	}
 
 	s.PlayerPot = blackjack.INITIAL_POT
@@ -139,9 +134,9 @@ func (c *MainController) Bet() {
 	if c.Ctx.Input.Method() == "POST" {
 		betAmount, _ := strconv.Atoi(c.GetString("betAmount"))
 		if betAmount == 0 {
-			s.Error = "Must place a bet"
+			c.Data["error"] = "Must place a bet"
 		} else if betAmount > s.PlayerPot {
-			s.Error = HTML("Bet must be less that %d.", s.PlayerPot)
+			c.Data["error"] = HTML("Bet must be less that %d.", s.PlayerPot)
 		} else {
 			s.PlayerBet = betAmount
 			c.Redirect("/game", 302)
@@ -193,7 +188,7 @@ func (c *MainController) PlayerHit() {
 		// Winner(s, "You hit Blackjack!")
 		c.Redirect("/game/dealer", 302)
 	} else if total > blackjack.BLACKJACK {
-		Loser(s, "You busted!")
+		loser(c, "You busted!")
 	}
 
 	c.Layout = ""
@@ -206,7 +201,7 @@ func (c *MainController) PlayerStay() {
 	if total == blackjack.BLACKJACK {
 		c.Redirect("/game/compare", 302)
 	} else {
-		s.Success = HTML("%s has chosen to stay.", s.PlayerName)
+		c.Data["success"] = HTML("%s has chosen to stay.", s.PlayerName)
 		c.Redirect("/game/dealer", 302)
 	}
 }
@@ -219,11 +214,11 @@ func (c *MainController) Dealer() {
 	if total == blackjack.BLACKJACK {
 		c.Redirect("/game/compare", 302)
 	} else if total > blackjack.BLACKJACK {
-		Winner(s, "Dealer busted!")
+		winner(c, "Dealer busted!")
 	} else if total >= 17 {
 		c.Redirect("/game/compare", 302)
 	} else {
-		s.ShowDealerHitButton = true
+		c.Data["showDealerHitButton"] = true
 	}
 
 	c.Layout = ""
@@ -233,12 +228,12 @@ func (c *MainController) Dealer() {
 func (c *MainController) DealerBlackjack() {
 	s := c.GetSession("session").(*Session)
 	s.Turn = "dealer"
-	s.ShowHitStayButton = false
+	c.Data["showHitStayButton"] = false
 	playerTotal := CalculateTotal(s, s.PlayerCards)
 	if playerTotal == blackjack.BLACKJACK {
-		Tie(s, "You and dealer hit Blackjack.")
+		tie(c, "You and dealer hit Blackjack.")
 	} else {
-		Loser(s, "Dealer hit Blackjack!")
+		loser(c, "Dealer hit Blackjack!")
 	}
 
 	c.TplName = "game.tpl"
@@ -255,7 +250,7 @@ func (c *MainController) DealerHit() {
 func (c *MainController) Compare() {
 	s := c.GetSession("session").(*Session)
 
-	s.ShowHitStayButton = false
+	c.Data["showHitStayButton"] = false
 
 	playerTotal := CalculateTotal(s, s.PlayerCards)
 	dealerTotal := CalculateTotal(s, s.DealerCards)
@@ -263,16 +258,18 @@ func (c *MainController) Compare() {
 	beego.Debug("Compare ", playerTotal, dealerTotal)
 	if playerTotal == blackjack.BLACKJACK {
 		if dealerTotal < blackjack.BLACKJACK {
-			Winner(s, fmt.Sprintf("You hit Blackjack! (dealer had %d)", dealerTotal))
+			winner(c, fmt.Sprintf("You hit Blackjack! (dealer had %d)", dealerTotal))
 		} else if dealerTotal == blackjack.BLACKJACK {
-			Tie(s, "You and dealer hit Blackjack.")
+			tie(c, "You and dealer hit Blackjack.")
 		}
+	} else if dealerTotal == blackjack.BLACKJACK {
+		loser(c, "Dealer hit Blackjack.")
 	} else if playerTotal > dealerTotal {
-		Winner(s, fmt.Sprintf("You stayed at %d and the dealer stayed at %d.", playerTotal, dealerTotal))
+		winner(c, fmt.Sprintf("You stayed at %d and the dealer stayed at %d.", playerTotal, dealerTotal))
 	} else if playerTotal < dealerTotal {
-		Loser(s, fmt.Sprintf("You stayed at %d and the dealer stayed at %d.", playerTotal, dealerTotal))
+		loser(c, fmt.Sprintf("You stayed at %d and the dealer stayed at %d.", playerTotal, dealerTotal))
 	} else {
-		Tie(s, fmt.Sprintf("You and the dealer stayed at %d.", playerTotal))
+		tie(c, fmt.Sprintf("You and the dealer stayed at %d.", playerTotal))
 	}
 
 	c.Layout = ""
@@ -282,7 +279,7 @@ func (c *MainController) Compare() {
 func (c *MainController) Over() {
 	s := c.GetSession("session").(*Session)
 	if s.PlayerPot <= 0 {
-		s.Error = HTML("<strong>%s, You are broke!</strong>", s.PlayerName)
+		c.Data["error"] = HTML("<strong>%s, You are broke!</strong>", s.PlayerName)
 	}
 	c.TplName = "game_over.tpl"
 }
