@@ -171,8 +171,16 @@ func (c *MainController) Game() {
 	s.DealerCards = append(s.DealerCards, deck.Deal())
 	s.PlayerCards = append(s.PlayerCards, deck.Deal())
 	s.DealerCards = append(s.DealerCards, deck.Deal())
+	// s.PlayerCards = append(s.PlayerCards, blackjack.Card{Suit: "Spades", Rank: "Ace"})
+	// s.PlayerCards = append(s.PlayerCards, blackjack.Card{Suit: "Spades", Rank: "Jack"})
+	// s.DealerCards = append(s.DealerCards, blackjack.Card{Suit: "Clubs", Rank: "Ace"})
+	// s.DealerCards = append(s.DealerCards, blackjack.Card{Suit: "Clubs", Rank: "Jack"})
 	s.Deck = deck
 
+	total := CalculateTotal(s, s.DealerCards)
+	if total == blackjack.BLACKJACK {
+		c.Redirect("/game/dealer/blackjack", 302)
+	}
 	c.TplName = "game.tpl"
 }
 
@@ -219,6 +227,20 @@ func (c *MainController) Dealer() {
 	}
 
 	c.Layout = ""
+	c.TplName = "game.tpl"
+}
+
+func (c *MainController) DealerBlackjack() {
+	s := c.GetSession("session").(*Session)
+	s.Turn = "dealer"
+	s.ShowHitStayButton = false
+	playerTotal := CalculateTotal(s, s.PlayerCards)
+	if playerTotal == blackjack.BLACKJACK {
+		Tie(s, "You and dealer hit Blackjack.")
+	} else {
+		Loser(s, "Dealer hit Blackjack!")
+	}
+
 	c.TplName = "game.tpl"
 }
 
