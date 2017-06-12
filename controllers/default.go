@@ -114,7 +114,7 @@ func (c *MainController) Get() {
 		c.Redirect("/new_player", 302)
 		return
 	}
-	c.Data["session"] = s
+
 	c.TplName = "game.tpl"
 }
 
@@ -130,7 +130,7 @@ func (c *MainController) NewPlayer() {
 	}
 
 	s.PlayerPot = blackjack.INITIAL_POT
-	c.Data["session"] = s
+
 	c.TplName = "new_player.tpl"
 }
 
@@ -144,7 +144,6 @@ func (c *MainController) Bet() {
 			s.Error = HTML("Bet must be less that %d.", s.PlayerPot)
 		} else {
 			s.PlayerBet = betAmount
-			c.Data["session"] = s
 			c.Redirect("/game", 302)
 			return
 		}
@@ -156,7 +155,6 @@ func (c *MainController) Bet() {
 		return
 	}
 
-	c.Data["session"] = s
 	c.TplName = "bet.tpl"
 }
 
@@ -174,7 +172,7 @@ func (c *MainController) Game() {
 	s.PlayerCards = append(s.PlayerCards, deck.Deal())
 	s.DealerCards = append(s.DealerCards, deck.Deal())
 	s.Deck = deck
-	c.Data["session"] = s
+
 	c.TplName = "game.tpl"
 }
 
@@ -189,7 +187,7 @@ func (c *MainController) PlayerHit() {
 	} else if total > blackjack.BLACKJACK {
 		Loser(s, "You busted!")
 	}
-	c.Data["session"] = s
+
 	c.Layout = ""
 	c.TplName = "game.tpl"
 }
@@ -203,7 +201,6 @@ func (c *MainController) PlayerStay() {
 		s.Success = HTML("%s has chosen to stay.", s.PlayerName)
 		c.Redirect("/game/dealer", 302)
 	}
-	c.Data["session"] = s
 }
 
 func (c *MainController) Dealer() {
@@ -221,7 +218,6 @@ func (c *MainController) Dealer() {
 		s.ShowDealerHitButton = true
 	}
 
-	c.Data["session"] = s
 	c.Layout = ""
 	c.TplName = "game.tpl"
 }
@@ -231,7 +227,6 @@ func (c *MainController) DealerHit() {
 
 	s.DealerCards = append(s.DealerCards, s.Deck.Deal())
 
-	c.Data["session"] = s
 	c.Redirect("/game/dealer", 302)
 }
 
@@ -258,7 +253,6 @@ func (c *MainController) Compare() {
 		Tie(s, fmt.Sprintf("You and the dealer stayed at %d.", playerTotal))
 	}
 
-	c.Data["session"] = s
 	c.Layout = ""
 	c.TplName = "game.tpl"
 }
