@@ -20,11 +20,11 @@
     </div>
 
     <div class="container">
-      {{ if .session.Error }}
-        <div class="alert alert-error">{{ .session.Error }}</div>
+      {{ if .error }}
+        <div class="alert alert-error">{{ .error }}</div>
       {{ end }}
-      {{ if .session.Success }}
-        <div class="alert alert-success">{{ .session.Success }}</div>
+      {{ if .success }}
+        <div class="alert alert-success">{{ .success }}</div>
       {{ end }}
 
       {{ .LayoutContent }}

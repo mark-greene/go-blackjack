@@ -1,16 +1,16 @@
 <div id='game'>
-  {{ if .session.Loser }}
-    <div class="alert alert-error">{{ .session.Loser }}</div>
+  {{ if .loser }}
+    <div class="alert alert-error">{{ .loser }}</div>
   {{ end }}
-  {{ if .session.Winner }}
-    <div class="alert alert-success">{{ .session.Winner }}</div>
+  {{ if .winner }}
+    <div class="alert alert-success">{{ .winner }}</div>
   {{ end }}
 
   <h1>Blackjack!</h1>
 
   <p>Welcome {{ .session.PlayerName }}.</p>
 
-  {{ if .session.PlayAgain }}
+  {{ if .playAgain }}
     <p>
       <strong>Play again?</strong>
       <a href='/bet' class='btn btn-primary'>Yes</a>
@@ -28,7 +28,7 @@
         {{ end }}
       {{ end }}
 
-      {{ if .session.ShowDealerHitButton }}
+      {{ if .showDealerHitButton }}
       <p>
         <h5>Dealer has {{ CalculateTotal .session .session.DealerCards }} and will hit.</h5>
         <form id="dealer_hit" action="/game/dealer/hit" method='post' >
@@ -54,7 +54,7 @@
     What would {{ .session.PlayerName }} like to do?
     {{ .session.PlayerName }} has {{ CalculateTotal .session .session.PlayerCards }}
 
-    {{ if .session.ShowHitStayButton }}
+    {{ if .showHitStayButton }}
       <form id="hit_form" action="/game/player/hit" method='post' >
         <input type="submit" class="btn btn-success" value="Hit" />
       </form>
