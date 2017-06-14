@@ -52,6 +52,16 @@ func CardImage(card blackjack.Card) string {
 	return fmt.Sprintf("/static/img/cards/%s_%s.jpg", strings.ToLower(card.Suit), strings.ToLower(card.Rank))
 }
 
+func init() {
+	// Functionss available to Template
+	beego.AddFuncMap("CalculateTotal", CalculateTotal)
+	beego.AddFuncMap("CardImage", CardImage)
+}
+
+type MainController struct {
+	beego.Controller
+}
+
 func winner(c *MainController, msg string) {
 	s := c.GetSession("session").(*Session)
 	c.Data["playAgain"] = true
@@ -64,7 +74,7 @@ func loser(c *MainController, msg string) {
 	c.Data["playAgain"] = true
 	c.Data["showHitStayButton"] = false
 	s.PlayerPot = s.PlayerPot - s.PlayerBet
-	c.Data["loser"] = HTML("<strong>%s loses</strong> %s", s.PlayerName, msg)
+	c.Data["loser"] = HTML("<strong>%s lost.</strong> %s", s.PlayerName, msg)
 }
 func tie(c *MainController, msg string) {
 	c.Data["playAgain"] = true
@@ -73,16 +83,6 @@ func tie(c *MainController, msg string) {
 }
 func HTML(format string, a ...interface{}) template.HTML {
 	return template.HTML(fmt.Sprintf(format, a...))
-}
-
-func init() {
-	// Functionss available to Template
-	beego.AddFuncMap("CalculateTotal", CalculateTotal)
-	beego.AddFuncMap("CardImage", CardImage)
-}
-
-type MainController struct {
-	beego.Controller
 }
 
 // Prepare runs after Init before request function execution.
@@ -258,7 +258,7 @@ func (c *MainController) Compare() {
 	beego.Debug("Compare ", playerTotal, dealerTotal)
 	if playerTotal == blackjack.BLACKJACK {
 		if dealerTotal < blackjack.BLACKJACK {
-			winner(c, fmt.Sprintf("You hit Blackjack! (dealer had %d)", dealerTotal))
+			winner(c, fmt.Sprintf("You hit Blackjack! (dealer has %d)", dealerTotal))
 		} else if dealerTotal == blackjack.BLACKJACK {
 			tie(c, "You and dealer hit Blackjack.")
 		}
