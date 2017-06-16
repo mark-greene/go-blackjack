@@ -21,7 +21,7 @@ type Session struct {
 	PlayerCards []blackjack.Card
 }
 
-func CalculateTotal(s *Session, cards []blackjack.Card) int {
+func CalculateTotal(cards []blackjack.Card) int {
 	total := 0
 	aces := 0
 	for _, card := range cards {
@@ -51,11 +51,18 @@ func CardImage(card blackjack.Card) string {
 
 	return fmt.Sprintf("/static/img/cards/%s_%s.jpg", strings.ToLower(card.Suit), strings.ToLower(card.Rank))
 }
+func AllowDouble(s *Session) bool {
+	if len(s.PlayerCards) == 2 && s.PlayerBet*2 <= s.PlayerPot {
+		return true
+	}
+	return false
+}
 
 func init() {
 	// Functionss available to Template
 	beego.AddFuncMap("CalculateTotal", CalculateTotal)
 	beego.AddFuncMap("CardImage", CardImage)
+	beego.AddFuncMap("AllowDouble", AllowDouble)
 }
 
 type MainController struct {
@@ -87,12 +94,12 @@ func HTML(format string, a ...interface{}) template.HTML {
 
 // Prepare runs after Init before request function execution.
 func (c *MainController) Prepare() {
-	c.Layout = "layout.tpl"
 	s := c.GetSession("session")
 	if s == nil {
 		s = &Session{}
 		c.SetSession("session", s)
 	}
+	c.Layout = "layout.tpl"
 	c.Data["session"] = s
 	c.Data["playAgain"] = false
 	c.Data["showHitStayButton"] = true
@@ -115,6 +122,7 @@ func (c *MainController) Get() {
 
 func (c *MainController) NewPlayer() {
 	s := c.GetSession("session").(*Session)
+
 	if c.Ctx.Input.Method() == "POST" {
 		s.PlayerName = c.GetString("playerName")
 		if s.PlayerName != "" {
@@ -125,7 +133,6 @@ func (c *MainController) NewPlayer() {
 	}
 
 	s.PlayerPot = blackjack.INITIAL_POT
-
 	c.TplName = "new_player.tpl"
 }
 
@@ -172,7 +179,7 @@ func (c *MainController) Game() {
 	// s.DealerCards = append(s.DealerCards, blackjack.Card{Suit: "Clubs", Rank: "Jack"})
 	s.Deck = deck
 
-	total := CalculateTotal(s, s.DealerCards)
+	total := CalculateTotal(s.DealerCards)
 	if total == blackjack.BLACKJACK {
 		c.Redirect("/game/dealer/blackjack", 302)
 	}
@@ -183,7 +190,7 @@ func (c *MainController) PlayerHit() {
 	s := c.GetSession("session").(*Session)
 
 	s.PlayerCards = append(s.PlayerCards, s.Deck.Deal())
-	total := CalculateTotal(s, s.PlayerCards)
+	total := CalculateTotal(s.PlayerCards)
 	if total == blackjack.BLACKJACK {
 		// Winner(s, "You hit Blackjack!")
 		c.Redirect("/game/dealer", 302)
@@ -197,7 +204,7 @@ func (c *MainController) PlayerHit() {
 
 func (c *MainController) PlayerStay() {
 	s := c.GetSession("session").(*Session)
-	total := CalculateTotal(s, s.PlayerCards)
+	total := CalculateTotal(s.PlayerCards)
 	if total == blackjack.BLACKJACK {
 		c.Redirect("/game/compare", 302)
 	} else {
@@ -206,11 +213,27 @@ func (c *MainController) PlayerStay() {
 	}
 }
 
+func (c *MainController) PlayerDouble() {
+	s := c.GetSession("session").(*Session)
+	s.PlayerBet += s.PlayerBet
+
+	s.PlayerCards = append(s.PlayerCards, s.Deck.Deal())
+	total := CalculateTotal(s.PlayerCards)
+	if total > blackjack.BLACKJACK {
+		loser(c, "You busted!")
+	} else {
+		c.Data["success"] = HTML("%s has chosen to double down!", s.PlayerName)
+		c.Redirect("/game/dealer", 302)
+	}
+	c.Layout = ""
+	c.TplName = "game.tpl"
+}
+
 func (c *MainController) Dealer() {
 	s := c.GetSession("session").(*Session)
 
 	s.Turn = "dealer"
-	total := CalculateTotal(s, s.DealerCards)
+	total := CalculateTotal(s.DealerCards)
 	if total == blackjack.BLACKJACK {
 		c.Redirect("/game/compare", 302)
 	} else if total > blackjack.BLACKJACK {
@@ -219,6 +242,7 @@ func (c *MainController) Dealer() {
 		c.Redirect("/game/compare", 302)
 	} else {
 		c.Data["showDealerHitButton"] = true
+		c.Data["showHitStayButton"] = false
 	}
 
 	c.Layout = ""
@@ -229,7 +253,7 @@ func (c *MainController) DealerBlackjack() {
 	s := c.GetSession("session").(*Session)
 	s.Turn = "dealer"
 	c.Data["showHitStayButton"] = false
-	playerTotal := CalculateTotal(s, s.PlayerCards)
+	playerTotal := CalculateTotal(s.PlayerCards)
 	if playerTotal == blackjack.BLACKJACK {
 		tie(c, "You and dealer hit Blackjack.")
 	} else {
@@ -252,13 +276,13 @@ func (c *MainController) Compare() {
 
 	c.Data["showHitStayButton"] = false
 
-	playerTotal := CalculateTotal(s, s.PlayerCards)
-	dealerTotal := CalculateTotal(s, s.DealerCards)
+	playerTotal := CalculateTotal(s.PlayerCards)
+	dealerTotal := CalculateTotal(s.DealerCards)
 
 	beego.Debug("Compare ", playerTotal, dealerTotal)
 	if playerTotal == blackjack.BLACKJACK {
 		if dealerTotal < blackjack.BLACKJACK {
-			winner(c, fmt.Sprintf("You hit Blackjack! (dealer has %d)", dealerTotal))
+			winner(c, "You hit Blackjack!")
 		} else if dealerTotal == blackjack.BLACKJACK {
 			tie(c, "You and dealer hit Blackjack.")
 		}
