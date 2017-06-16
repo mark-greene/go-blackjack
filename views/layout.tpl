@@ -3,9 +3,9 @@
   <head>
     <title>Blackjack</title>
     <link rel="stylesheet" href="/static/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/application.css">
+    <link rel="stylesheet" href="/static/application.css?version=2">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="/static/application.js"></script>
+    <script src="/static/application.js?version=2"></script>
   </head>
   <body style="padding-top: 50px;">
 

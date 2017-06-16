@@ -12,6 +12,7 @@ func init() {
 	beego.Router("/game", &controllers.MainController{}, "get:Game")
 	beego.Router("/game/player/hit", &controllers.MainController{}, "post:PlayerHit")
 	beego.Router("/game/player/stay", &controllers.MainController{}, "post:PlayerStay")
+	beego.Router("/game/player/double", &controllers.MainController{}, "post:PlayerDouble")
 	beego.Router("/game/dealer", &controllers.MainController{}, "get:Dealer")
 	beego.Router("/game/dealer/hit", &controllers.MainController{}, "post:DealerHit")
 	beego.Router("/game/dealer/blackjack", &controllers.MainController{}, "get:DealerBlackjack")

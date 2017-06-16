@@ -2,6 +2,7 @@ $(document).ready(function() {
 
   player_hits();
   player_stays();
+  player_doubles();
   dealer_hits();
 
 });
@@ -23,6 +24,18 @@ function player_stays() {
     $.ajax({
       type: "Post",
       url: "/game/player/stay"
+    }).done(function(msg) {
+      $("#game").replaceWith(msg);
+    });
+    return false;
+  });
+};
+
+function player_doubles() {
+  $(document).on("click", "form#double_form input", function() {
+    $.ajax({
+      type: "Post",
+      url: "/game/player/double"
     }).done(function(msg) {
       $("#game").replaceWith(msg);
     });
