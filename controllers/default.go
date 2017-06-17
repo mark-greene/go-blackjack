@@ -132,6 +132,7 @@ func (c *MainController) NewPlayer() {
 		c.Data["error"] = "Name is required"
 	}
 
+	s.PlayerName = ""
 	s.PlayerPot = blackjack.INITIAL_POT
 	c.TplName = "new_player.tpl"
 }
