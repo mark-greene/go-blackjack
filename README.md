@@ -1,7 +1,7 @@
 # go-blackjack
 Port of Ruby/Sinatra game to Go/BeeGo
 
-Using my Ruby/Sinatra blackjack game to learn Golang.  Requires lots more coding and the go template language
+Using my [Ruby/Sinatra blackjack game](https://github.com/mark-greene/ruby-web-blackjack) to learn Golang.  Requires lots more coding and the go template language
 takes some getting use to.  Just try to do the following in go (it took me ~80 lines)
 ```
   suits = ['Clubs', 'Diamonds', 'Hearts', 'Spades']
